@@ -1,5 +1,6 @@
 package com.projectge.main;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -28,6 +29,26 @@ import com.projectge.utils.HackyTools;
 import com.projectge.utils.Screenshot;
 import com.projectge.utils.SpreadSheetReader;
 
+/**
+ * 
+ * AutoTrader Test Project
+ * 
+ * Requirements:
+ * 10 tests: 1 completed.
+ * Excel Input Sheet: completed.
+ * Results Report: completed.
+ * 
+ * Issues: 
+ * -> One main advanced search is missing due to lack of time to complete the project.
+ * -> Eight misc tests are missing due to lack of time to complete the projects.
+ * 
+ * Output:
+ * -> Report will be placed within the root of the project (eclipse) in "Report\Report.html" or under "C:\Report\Report.html" (others, as far as I know)
+ * -> TestData.xlsx must be within the root of the project (eclipse) or under "C:\TestData.xlsx" (others, as far as I know)
+ * 
+ * @author Administrator
+ *
+ */
 public class AppTest {
 
 	/**
@@ -46,11 +67,13 @@ public class AppTest {
 	 * Test objects
 	 */
 	private static ExtentTest excelFileReaderTest;
+	public static ExtentTest advancedSearchTest;
 	
 	/**
 	 * Browser configuration
 	 */
 	private static List<String> browserConfig = new ArrayList<String>();
+	private static List<String> searchValues = new ArrayList<String>();
 	
 	/**
 	 * Initialise the entire test setup
@@ -59,6 +82,7 @@ public class AppTest {
 	public static void beforeClass() {
 		// Create new report
         reportTests = new ExtentReports();
+        
 		
         // Configure new report
         ExtentHtmlReporter extentHtmlReporter = new ExtentHtmlReporter(reportFilePath);
@@ -68,6 +92,7 @@ public class AppTest {
 
         // Add a test to the report
         excelFileReaderTest = reportTests.createTest("Excel Reader Tests");
+        advancedSearchTest = reportTests.createTest("Advanced Search");
         
         // Try fetching data from spreadsheet
 		try {
@@ -108,7 +133,7 @@ public class AppTest {
 		switch(bId) {
 		case 1:
 			webDriver = new ChromeDriver();
-			webDriver.manage().window().maximize();
+			//webDriver.manage().window().maximize();
 			System.out.println("Using Chrome Driver: " + webDriver.getClass().getName());
 			break;
 		case 2:
@@ -128,9 +153,70 @@ public class AppTest {
 	}
 
 	@Test
-	public void demoTest() {
+	public void testOneAdvancedSearchAll() {
+        // Try fetching data from spreadsheet
+		try {
+			excelFileReaderTest.debug("Reading Excel file: TestData.xlsx");
+			sheetReader = new SpreadSheetReader("TestData.xlsx");
+			searchValues = sheetReader.readRow(1, "AdvancedSearchValues");
+			
+			// Debug print the data
+			System.out.println(searchValues.toString());
+			System.out.println(searchValues.size());
+			
+			// Log to report
+			if(browserConfig.size() > 0) {
+				excelFileReaderTest.pass("No errors found, got data: " + searchValues.toString());
+			}
+			else {
+				excelFileReaderTest.fail("No data was fetched from TestData.xlsx");
+				fail("No data was fetched from TestData.xlsx");
+			}
+		}
+		catch (IOException e) {
+			// No file found most likely
+			excelFileReaderTest.fail("Opening TestData.xlsx threw an error: " + e.getMessage());
+			reportTests.flush();
+			
+			fail("Opening TestData.xlsx threw an error: " + e.getMessage());
+		}
+		
 		NavigationBar navBar = PageFactory.initElements(webDriver, NavigationBar.class);
 		navBar.openSearch();
+		
+		AdvancedSearchForm advSearch = PageFactory.initElements(webDriver, AdvancedSearchForm.class);
+		
+		advSearch.sendPostcode(searchValues.get(2));
+		advSearch.selectDistanceByValue(searchValues.get(3));
+
+		if(searchValues.get(4).equals("no")) {
+			advSearch.toggleCheckboxUsed();
+		}
+		if(searchValues.get(5).equals("no")) {
+			advSearch.toggleCheckboxNearlyNew();
+		}
+		if(searchValues.get(6).equals("no")) {
+			advSearch.toggleCheckboxNew();
+		}
+
+		advSearch.selectMakeByPartialText(searchValues.get(0));
+		advSearch.selectModelByPartialText(searchValues.get(1));
+
+		advSearch.selectMinPriceByValue(searchValues.get(7));
+		advSearch.selectMaxPriceByValue(searchValues.get(8));
+		
+		advSearch.clickSearch();
+		
+		ResultsNav resultPage = PageFactory.initElements(webDriver, ResultsNav.class);
+		
+		if(resultPage.getResultsElement().isDisplayed()) {
+			advancedSearchTest.pass("Results were returned successfully!");
+		}
+		else {
+			advancedSearchTest.fail("No results found.");
+		}
+		
+		assertTrue("Results view should be shown.", resultPage.getResultsElement().isDisplayed());
 	}
 	
 	@After
