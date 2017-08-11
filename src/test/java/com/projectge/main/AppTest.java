@@ -219,6 +219,44 @@ public class AppTest {
 		assertTrue("Results view should be shown.", resultPage.getResultsElement().isDisplayed());
 	}
 	
+	@Test
+	public void testTwoAdvancedSearchHardCoded() {
+		fail("Not implemented");
+	}
+
+	@Test
+	public void testThree() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testFour() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testFive() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testSix() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testSeven() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testEight() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testNine() {
+		fail("Not implemented");
+	}
+	@Test
+	public void testTen() {
+		fail("Not implemented");
+	}
+	
 	@After
 	public void afterTest() { 
 		webDriver.quit();
